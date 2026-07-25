@@ -1,7 +1,7 @@
 const DIRECTION_ANGLES = Object.freeze({
-  right: 0,
+  right: Math.PI,
   down: Math.PI / 2,
-  left: Math.PI,
+  left: 0,
   up: -Math.PI / 2,
 });
 

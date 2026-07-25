@@ -70,6 +70,10 @@ export function createExplorerSketch(host, getViewState) {
         p.fill("#171917");
         p.rect(mapped.x, mapped.y, mapped.width, mapped.height, 2);
         p.fill("#ff4e38");
+        p.drawingContext.save();
+        p.drawingContext.beginPath();
+        p.drawingContext.rect(mapped.x, mapped.y, mapped.width, mapped.height);
+        p.drawingContext.clip();
         for (let offset = -mapped.height; offset < mapped.width; offset += 13) {
           p.quad(
             mapped.x + offset, mapped.y,
@@ -78,6 +82,7 @@ export function createExplorerSketch(host, getViewState) {
             mapped.x + offset + mapped.height, mapped.y + mapped.height,
           );
         }
+        p.drawingContext.restore();
       }
 
       if (state.targetVisible && state.target) {

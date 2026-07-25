@@ -9,6 +9,10 @@
     <link rel="stylesheet" href="/src/styles.css">
     <script src="https://cdn.jsdelivr.net/npm/p5@1.11.11/lib/p5.min.js"></script>
     <script src="https://tetunori.github.io/p5.toio/dist/0.8.0/p5.toio.min.js"></script>
+    <script>
+      globalThis.P5tCube = Cube;
+      globalThis.P5tCube.connectNewP5tCube = Cube.connectNewCube;
+    </script>
   </head>
   <body>
     <div class="app-shell">

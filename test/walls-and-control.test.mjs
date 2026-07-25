@@ -20,6 +20,8 @@ test("generated walls leave a route between start and target", () => {
   assert.equal(walls.length, 3);
   assert.equal(pathExists({ bounds, start, target, walls }), true);
   assert.equal(walls.every((wall) => wall.revealed === false), true);
+  assert.equal(walls.every((wall) => Math.max(wall.width, wall.height) <= 55), true);
+  assert.equal(walls.every((wall) => Math.min(wall.width, wall.height) <= 8), true);
 });
 
 test("wall collision accounts for cube clearance", () => {
@@ -29,10 +31,11 @@ test("wall collision accounts for cube clearance", () => {
 });
 
 test("absolute directions rotate before driving", () => {
-  assert.deepEqual(wheelCommandForDirection("right", 0), { left: 42, right: 42, duration: 140 });
+  assert.deepEqual(wheelCommandForDirection("right", 0), { left: 34, right: -34, duration: 140 });
   assert.deepEqual(wheelCommandForDirection("down", 0), { left: 34, right: -34, duration: 140 });
   assert.deepEqual(wheelCommandForDirection("neutral", 0), { left: 0, right: 0, duration: 140 });
-  assert.deepEqual(projectedPoint({ x: 100, y: 100 }, "left", 20), { x: 80, y: 100 });
+  assert.deepEqual(projectedPoint({ x: 100, y: 100 }, "right", 20), { x: 80, y: 100 });
+  assert.deepEqual(projectedPoint({ x: 100, y: 100 }, "left", 20), { x: 120, y: 100 });
 });
 
 test("hand direction uses calibration, dead zone, and confidence", () => {

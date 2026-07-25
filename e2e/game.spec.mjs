@@ -1,5 +1,12 @@
 import { expect, test } from "@playwright/test";
 
+test("toio connection API is exposed to the controller", async ({ page }) => {
+  await page.goto("/");
+
+  const connectApiType = await page.evaluate(() => typeof globalThis.P5tCube?.connectNewP5tCube);
+  expect(connectApiType).toBe("function");
+});
+
 test("simulation moves and emergency stop stays latched", async ({ page }) => {
   const pageErrors = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));

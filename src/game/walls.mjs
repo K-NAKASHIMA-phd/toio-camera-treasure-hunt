@@ -93,8 +93,8 @@ export function generateWalls({
 
   for (let attempt = 0; attempt < 120 && walls.length < desired; attempt += 1) {
     const horizontal = random() >= 0.5;
-    const length = 55 + random() * 55;
-    const thickness = 10 + random() * 6;
+    const length = 27.5 + random() * 27.5;
+    const thickness = 5 + random() * 3;
     const width = horizontal ? length : thickness;
     const height = horizontal ? thickness : length;
     const candidate = {
