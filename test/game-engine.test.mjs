@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { GameEngine, getDistanceBand } from "../src/game/game-engine.mjs";
+import { RivalNpc } from "../src/game/rival-npc.mjs";
 
 test("distance bands progress from red to blue", () => {
   assert.equal(getDistanceBand(20).name, "red");
@@ -78,4 +79,36 @@ test("GameEngine restarts an active game and prioritizes its deadline", () => {
   const events = engine.tick(61_000);
   assert.equal(events[0].type, "game-finished");
   assert.equal(engine.phase, "finished");
+});
+
+test("the first competitor to reach the shared target scores", () => {
+  const engine = new GameEngine({ targetFactory: () => ({ x: 250, y: 250 }) });
+  engine.start(0, { x: 120, y: 120 });
+
+  const rivalEvents = engine.updateRivalPosition({ x: 252, y: 250 }, 500);
+  assert.equal(rivalEvents[0].type, "rival-scored");
+  assert.equal(engine.rivalScore, 1);
+  assert.equal(engine.score, 0);
+  assert.deepEqual(engine.updatePosition({ x: 250, y: 250 }, 501), []);
+});
+
+test("weak rival uses an inaccurate low-speed target estimate", () => {
+  const values = [0.5, 0.9, 0.1, 0.8];
+  const npc = new RivalNpc({
+    bounds: { minX: 0, minY: 0, maxX: 300, maxY: 200 },
+    random: () => values.shift() ?? 0.5,
+  });
+  npc.reset({ x: 250, y: 20 });
+
+  const before = npc.snapshot();
+  const after = npc.update({
+    now: 1_000,
+    deltaMs: 1_000,
+    target: { x: 100, y: 150 },
+    walls: [],
+  });
+
+  assert.notDeepEqual(after.estimatedTarget, { x: 100, y: 150 });
+  assert.ok(Math.hypot(after.x - before.x, after.y - before.y) <= 1);
+  assert.equal(after.moving, true);
 });
