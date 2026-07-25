@@ -60,6 +60,8 @@ npm run test:e2e
 
 Web Bluetooth、Position ID、LED、内蔵音、カメラ推論の実機動作はWindows版Chrome/Edgeと実機で確認してください。
 
+チームメイトによる実機検証は[実機テスト引継ぎ資料](docs/REAL_DEVICE_TEST_HANDOFF.md)に従ってください。合否基準、停止条件、証跡、結果記入欄をまとめています。
+
 ## 公開
 
 `main`へpushすると[Pages workflow](.github/workflows/pages.yml)がテストとビルドを実行し、GitHub Pagesへ配置します。リポジトリのSettings > Pages > Build and deploymentでSourceを`GitHub Actions`に設定してください。
