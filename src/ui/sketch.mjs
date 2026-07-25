@@ -117,6 +117,31 @@ export function createExplorerSketch(host, getViewState) {
         p.pop();
       }
 
+      if (state.rival) {
+        const rival = mapPoint(state.rival, rect);
+        p.noFill();
+        p.stroke("#ff5b35");
+        p.strokeWeight(2);
+        p.circle(rival.x, rival.y, 40);
+        p.push();
+        p.translate(rival.x, rival.y);
+        p.rotate(state.rival.angle ?? 0);
+        p.rectMode(p.CENTER);
+        p.stroke("#111311");
+        p.strokeWeight(2);
+        p.fill("#ff5b35");
+        p.rect(0, 0, 23, 23, 2);
+        p.fill("#111311");
+        p.noStroke();
+        p.triangle(3, -5, 12, 0, 3, 5);
+        p.pop();
+        p.noStroke();
+        p.fill("#8e2819");
+        p.textSize(10);
+        p.textAlign(p.CENTER, p.BOTTOM);
+        p.text("RIVAL", rival.x, rival.y - 24);
+      }
+
       p.noStroke();
       p.fill("#111311");
       p.textSize(Math.max(10, p.width * 0.013));

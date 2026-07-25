@@ -48,6 +48,7 @@ export class GameEngine {
   reset() {
     this.phase = "ready";
     this.score = 0;
+    this.rivalScore = 0;
     this.startedAt = null;
     this.finishedAt = null;
     this.scorePauseUntil = null;
@@ -111,12 +112,33 @@ export class GameEngine {
 
     if (this.distance <= this.scoreRadius) {
       this.score += 1;
-      this.phase = "score-pause";
-      this.scorePauseUntil = now + this.scorePauseMs;
-      events.push({ type: "scored", score: this.score, target: this.target });
+      this.#pauseAfterScore(now);
+      events.push({
+        type: "scored",
+        actor: "player",
+        score: this.score,
+        rivalScore: this.rivalScore,
+        target: this.target,
+      });
     }
 
     return events;
+  }
+
+  updateRivalPosition(position, now = performance.now()) {
+    if (this.phase !== "running") return [];
+    const distance = distanceBetween(position, this.target);
+    if (distance > this.scoreRadius) return [];
+
+    this.rivalScore += 1;
+    this.#pauseAfterScore(now);
+    return [{
+      type: "rival-scored",
+      actor: "rival",
+      score: this.score,
+      rivalScore: this.rivalScore,
+      target: this.target,
+    }];
   }
 
   remainingMs(now = performance.now()) {
@@ -127,6 +149,11 @@ export class GameEngine {
 
   get targetVisible() {
     return this.phase === "score-pause";
+  }
+
+  #pauseAfterScore(now) {
+    this.phase = "score-pause";
+    this.scorePauseUntil = now + this.scorePauseMs;
   }
 
   #placeRound() {

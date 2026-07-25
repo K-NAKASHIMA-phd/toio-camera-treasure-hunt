@@ -1,5 +1,6 @@
 import { wheelCommandForDirection, projectedPoint } from "./control/absolute-motion-controller.mjs";
 import { GameEngine } from "./game/game-engine.mjs";
+import { RivalNpc } from "./game/rival-npc.mjs";
 import { firstWallCollision, generateWalls } from "./game/walls.mjs";
 import { SimulatedCube } from "./hardware/simulated-cube.mjs";
 import { ToioController } from "./hardware/toio-controller.mjs";
@@ -8,7 +9,7 @@ import { createExplorerSketch } from "./ui/sketch.mjs";
 
 const SAFE_BOUNDS = Object.freeze({ minX: 114, minY: 158, maxX: 386, maxY: 342 });
 const elements = Object.fromEntries([
-  "score", "time", "signal", "signal-swatch", "mode-chip", "field-message", "position-readout",
+  "score", "rival-score", "time", "signal", "signal-swatch", "mode-chip", "field-message", "position-readout", "rival-readout",
   "camera", "camera-dot", "hand-direction", "camera-button", "calibrate-button", "cube-dot",
   "connect-button", "simulation-button", "connection-label", "battery-label", "start-button", "stop-button",
 ].map((id) => [id, document.getElementById(id)]));
@@ -39,6 +40,7 @@ class AudioFeedback {
 
 const audio = new AudioFeedback();
 const hand = new HandController();
+const rival = new RivalNpc({ bounds: SAFE_BOUNDS });
 let controller = new SimulatedCube({ bounds: SAFE_BOUNDS });
 let inputDirection = "neutral";
 let pointerDirection = "neutral";
@@ -50,12 +52,15 @@ let message = "SYSTEM READY";
 let motionArmed = false;
 
 function randomTarget({ position }) {
+  const rivalPosition = rival.snapshot();
   for (let attempt = 0; attempt < 80; attempt += 1) {
     const target = {
       x: SAFE_BOUNDS.minX + 24 + Math.random() * (SAFE_BOUNDS.maxX - SAFE_BOUNDS.minX - 48),
       y: SAFE_BOUNDS.minY + 24 + Math.random() * (SAFE_BOUNDS.maxY - SAFE_BOUNDS.minY - 48),
     };
-    if (!position || Math.hypot(target.x - position.x, target.y - position.y) >= 85) return target;
+    const farFromPlayer = !position || Math.hypot(target.x - position.x, target.y - position.y) >= 85;
+    const farFromRival = Math.hypot(target.x - rivalPosition.x, target.y - rivalPosition.y) >= 60;
+    if (farFromPlayer && farFromRival) return target;
   }
   return { x: SAFE_BOUNDS.maxX - 28, y: SAFE_BOUNDS.maxY - 28 };
 }
@@ -105,14 +110,25 @@ function handleEvents(events) {
       controller.playScore();
       audio.beep(1040, 0.18, 0.06);
       collisionPoint = null;
-      setMessage("SIGNAL ACQUIRED");
+      setMessage("YOU CAPTURED THE SIGNAL");
+    }
+    if (event.type === "rival-scored") {
+      controller.stop();
+      controller.setLight(255, 90, 35, 600);
+      controller.playNote(45, 180);
+      audio.beep(185, 0.2, 0.06);
+      collisionPoint = null;
+      setMessage("RIVAL CAPTURED THE SIGNAL");
     }
     if (event.type === "round-started") {
       collisionPoint = null;
       setMessage("NEW SIGNAL DETECTED");
     }
     if (event.type === "game-finished") {
-      stopMotion("EXPLORATION COMPLETE");
+      const result = engine.score === engine.rivalScore
+        ? "DRAW"
+        : engine.score > engine.rivalScore ? "YOU WIN" : "RIVAL WINS";
+      stopMotion(`EXPLORATION COMPLETE / ${result}`);
     }
   }
 }
@@ -162,11 +178,22 @@ function updateGame(now, deltaMs) {
     controller.stop();
   }
 
-  return { snapshot, handState };
+  const rivalActive = engine.phase === "running" && snapshot.hasPosition && motionArmed;
+  const rivalSnapshot = rival.update({
+    now,
+    deltaMs,
+    target: engine.target,
+    walls: engine.walls,
+    active: rivalActive,
+  });
+  if (rivalActive) handleEvents(engine.updateRivalPosition(rivalSnapshot, now));
+
+  return { snapshot, rivalSnapshot, handState };
 }
 
-function updateReadouts(now, snapshot) {
+function updateReadouts(now, snapshot, rivalSnapshot) {
   elements.score.textContent = String(engine.score).padStart(2, "0");
+  elements["rival-score"].textContent = String(engine.rivalScore).padStart(2, "0");
   elements.time.textContent = (engine.remainingMs(now) / 1000).toFixed(1);
   elements.signal.textContent = engine.band?.name.toUpperCase() ?? "--";
   elements["signal-swatch"].style.backgroundColor = engine.band
@@ -175,6 +202,7 @@ function updateReadouts(now, snapshot) {
   elements["position-readout"].textContent = snapshot.hasPosition
     ? `X ${Math.round(snapshot.x)} / Y ${Math.round(snapshot.y)} / A ${Math.round((snapshot.angle ?? 0) * 180 / Math.PI)}`
     : "POSITION LOST";
+  elements["rival-readout"].textContent = `RIVAL X ${Math.round(rivalSnapshot.x)} / Y ${Math.round(rivalSnapshot.y)}`;
   elements["battery-label"].textContent = Number.isFinite(snapshot.batteryLevel)
     ? `BAT ${snapshot.batteryLevel}%`
     : "BAT --";
@@ -182,6 +210,7 @@ function updateReadouts(now, snapshot) {
 
 const viewState = {
   cube: controller.snapshot(),
+  rival: rival.snapshot(),
   walls: [],
   target: null,
   targetVisible: false,
@@ -195,9 +224,10 @@ createExplorerSketch(document.getElementById("canvas-host"), () => viewState);
 function frame(now) {
   const deltaMs = now - lastFrameAt;
   lastFrameAt = now;
-  const { snapshot } = updateGame(now, deltaMs);
+  const { snapshot, rivalSnapshot } = updateGame(now, deltaMs);
   Object.assign(viewState, {
     cube: snapshot,
+    rival: rivalSnapshot,
     walls: engine.walls,
     target: engine.target,
     targetVisible: engine.targetVisible,
@@ -205,7 +235,7 @@ function frame(now) {
     revealedCount: engine.walls.filter((wall) => wall.revealed).length,
     collisionPoint,
   });
-  updateReadouts(now, snapshot);
+  updateReadouts(now, snapshot, rivalSnapshot);
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
@@ -267,6 +297,7 @@ elements["start-button"].addEventListener("click", () => {
     return;
   }
   motionArmed = true;
+  rival.reset();
   handleEvents(engine.start(performance.now(), snapshot));
   elements["start-button"].textContent = "再スタート";
 });

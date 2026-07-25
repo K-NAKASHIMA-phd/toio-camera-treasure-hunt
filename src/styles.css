@@ -72,6 +72,9 @@ h1 { font-size: 38px; line-height: 0.92; letter-spacing: 0; }
 }
 .telemetry-item span { font-size: 10px; color: #5c6058; }
 .telemetry-item strong { font-size: 30px; font-variant-numeric: tabular-nums; }
+.player-score { box-shadow: inset 0 4px 0 var(--signal); }
+.rival-score { box-shadow: inset 0 4px 0 var(--alert); }
+.rival-score strong { color: #a72c1d; }
 .signal-readout { position: relative; min-width: 136px; }
 .signal-readout i { position: absolute; right: 12px; bottom: 16px; width: 12px; height: 12px; border: 1px solid var(--ink); }
 
@@ -85,6 +88,8 @@ h1 { font-size: 38px; line-height: 0.92; letter-spacing: 0; }
 .section-heading h2 { font-size: 19px; line-height: 1.1; }
 .section-heading.compact { align-items: center; margin-bottom: 10px; }
 .mode-chip { padding: 6px 9px; color: var(--paper); background: var(--ink); font: 11px Consolas, monospace; }
+.mode-group { display: flex; align-items: center; gap: 6px; }
+.versus-chip { padding: 6px 9px; border: 1px solid var(--ink); color: #a72c1d; background: #fff7ef; font: 700 11px Consolas, monospace; }
 
 .canvas-host { width: 100%; min-height: 280px; overflow: hidden; border: 1px solid var(--ink); background: #e9e9e1; }
 .canvas-host canvas { display: block; width: 100% !important; height: auto !important; }

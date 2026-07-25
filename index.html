@@ -21,7 +21,8 @@
           </div>
         </div>
         <div class="telemetry" aria-label="ゲーム情報">
-          <div class="telemetry-item"><span>SCORE</span><strong id="score">00</strong></div>
+          <div class="telemetry-item player-score"><span>YOU</span><strong id="score">00</strong></div>
+          <div class="telemetry-item rival-score"><span>RIVAL</span><strong id="rival-score">00</strong></div>
           <div class="telemetry-item"><span>TIME</span><strong id="time">60.0</strong></div>
           <div class="telemetry-item signal-readout">
             <span>SIGNAL</span><strong id="signal">--</strong><i id="signal-swatch"></i>
@@ -33,12 +34,13 @@
         <section class="field-zone" aria-label="探索フィールド">
           <div class="section-heading">
             <div><span>MAP 01</span><h2>簡易プレイマット</h2></div>
-            <div class="mode-chip" id="mode-chip">SIMULATION</div>
+            <div class="mode-group"><div class="versus-chip">YOU vs NPC</div><div class="mode-chip" id="mode-chip">SIMULATION</div></div>
           </div>
           <div id="canvas-host" class="canvas-host"></div>
           <div class="field-status" aria-live="polite">
             <span id="field-message">SYSTEM READY</span>
             <span id="position-readout">X 250 / Y 250 / A 000</span>
+            <span id="rival-readout">RIVAL X 362 / Y 182</span>
           </div>
         </section>
 

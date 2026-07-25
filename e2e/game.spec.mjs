@@ -10,6 +10,8 @@ test("simulation moves and emergency stop stays latched", async ({ page }) => {
   await page.goto("/");
 
   await expect(page.getByRole("heading", { name: "SIGNAL//SEEK" })).toBeVisible();
+  await expect(page.locator("#rival-score")).toHaveText("00");
+  await expect(page.locator("#rival-readout")).toContainText("RIVAL X");
   await page.waitForTimeout(1_500);
   expect(pageErrors, pageErrors.join("\n")).toEqual([]);
   const canvas = page.locator("#canvas-host canvas");
@@ -17,6 +19,7 @@ test("simulation moves and emergency stop stays latched", async ({ page }) => {
   expect(await canvas.evaluate((element) => element.toDataURL().length)).toBeGreaterThan(1_000);
 
   await page.getByRole("button", { name: "探索を開始" }).click();
+  await expect(page.locator("#field-message")).toContainText("NEW SIGNAL");
   const before = await page.locator("#position-readout").textContent();
   await page.keyboard.down("ArrowRight");
   await page.waitForTimeout(450);
